@@ -19,7 +19,6 @@ public class JavaFXTemplate extends Application {
 		primaryStage.setTitle("Welcome to Connect Four!");
 		
 		
-		
 				
 		Scene scene = new Scene(new VBox(), 700,700);
 		primaryStage.setScene(scene);
