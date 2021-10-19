@@ -8,12 +8,27 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
 public class JavaFXTemplate extends Application {
+	GridPane grid;
+	Game g1;
+	MenuBar m1;
+	Menu menu1;
+	Menu menu2;
+	Menu menu3;
+	MenuItem item1;
+	MenuItem item2;
+	MenuItem item3;
+	MenuItem item4;
+	MenuItem item5;
+	MenuItem item6;
+	MenuItem item7;
 	
 	
 	public static void main(String[] args) {
@@ -26,36 +41,48 @@ public class JavaFXTemplate extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
 		primaryStage.setTitle("Welcome to Connect Four!");
-		
-		
 		primaryStage.setScene(startScene(primaryStage));
 		primaryStage.show();
 	}
 	
+	
+	
 	public Scene startScene(Stage primaryStage) {
+		Image logo = new Image("ConnectFour.jpeg");
+		ImageView logoview = new ImageView();
+		logoview.setImage(logo);
 		Button start = new Button("New Game");
 		start.setOnAction(e -> primaryStage.setScene(gameScene(primaryStage)));
-		Scene scene = new Scene(new VBox(start), 700,700);
+		Scene scene = new Scene(new VBox(start, logoview), 700,700);
 		scene.getRoot().setStyle("-fx-font-family: 'Helvetica'");
 		return scene;
 	}
 	
 	public Scene gameScene(Stage primaryStage) {
-		GridPane grid = new GridPane();
+		grid = new GridPane();
 		grid.setMaxSize(600, 600);
 		
-		ListView<String> myView = new ListView<>();
-		myView.setPrefSize(100, 100);
+		ListView<String> whoseMove = new ListView<>();
+		whoseMove.setPrefSize(100, 100);
 		
-		MenuBar m1 = new MenuBar();
-		Menu menu1 = new Menu("Game Play");
-		Menu menu2 = new Menu("Themes");
-		Menu menu3 = new Menu("Options");
-		MenuItem item1 = new MenuItem("reverse move");
-		MenuItem item5 = new MenuItem("how to play");
-		MenuItem item6 = new MenuItem("new game");
-		MenuItem item7 = new MenuItem("exit");
+		ListView<String> moveLog = new ListView<>();
+		moveLog.setPrefSize(100, 100);
+		
+		m1 = new MenuBar();
+		menu1 = new Menu("Game Play");
+		menu2 = new Menu("Themes");
+		menu3 = new Menu("Options");
+		item1 = new MenuItem("reverse move");
+		item2 = new MenuItem("Default");
+		item3 = new MenuItem("Dark");
+		item4 = new MenuItem("Cool");
+		item5 = new MenuItem("how to play");
+		item6 = new MenuItem("new game");
+		item7 = new MenuItem("exit");
 		menu1.getItems().add(item1);
+		menu2.getItems().add(item2);
+		menu2.getItems().add(item3);
+		menu2.getItems().add(item4);
 		menu3.getItems().add(item5);
 		menu3.getItems().add(item6);
 		menu3.getItems().add(item7);
@@ -63,40 +90,48 @@ public class JavaFXTemplate extends Application {
 		m1.getMenus().add(menu2);
 		m1.getMenus().add(menu3);
 		
-		Game g1 = new Game();
+		g1 = new Game();
 		item1.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				Pair<Integer, Integer> lastMove = g1.reverse();
 				if (lastMove != null) {
-					myView.getItems().clear();
-					myView.getItems().add("Move made to " + lastMove.getKey() + ",  " + lastMove.getValue() + " by Player" + 
-							g1.getTurn() + " reversed. Move again");
+					whoseMove.getItems().clear();
+					whoseMove.getItems().add("Player" + g1.getTurn() + "'s turn");
+					whoseMove.getItems().add("Move made to (" + lastMove.getKey() + ", " + lastMove.getValue() + ") by Player" + 
+							g1.getTurn() + " reversed.");
+					moveLog.getItems().remove(moveLog.getItems().size() - 1);
 				}
 			}
 		});
+		
+		item2.setOnAction(e -> changeTheme("Default"));
+		item3.setOnAction(e -> changeTheme("Dark"));
+		item4.setOnAction(e -> changeTheme("Cool"));
+		changeTheme("Default");
 		item6.setOnAction(e -> primaryStage.setScene(gameScene(primaryStage)));
 		item7.setOnAction(e -> primaryStage.close());
-		myView.getItems().add("Player" + g1.getTurn() + "'s turn");
+		whoseMove.getItems().add("Player" + g1.getTurn() + "'s turn");
 		for (int i = 0; i < 6; i++) {
 			for (int j = 0; j < 7; j++) {
 				GameButton b1 = new GameButton();
 				b1.setPrefSize(60, 60);
 				Pair <Integer, Integer> index = new Pair<>(i, j);
 				b1.setIndex(index);
-				//b1.setText(b1.getIndex().getKey().toString() + ", "+ b1.getIndex().getValue().toString());
 				b1.setOnAction(new EventHandler<ActionEvent>() {
 					public void handle(ActionEvent event) {
 						Pair<Integer, Integer> moveIndex = ((GameButton)event.getSource()).getIndex();
 						if (!g1.makeMove(moveIndex)) {
-							myView.getItems().add("Player" + g1.getTurn() + " moved to " + moveIndex.getKey() +
-									", " + moveIndex.getValue() + ". This is not a valid move. Pick one again");
+							whoseMove.getItems().add("P" + g1.getTurn() + " to (" + moveIndex.getKey() +
+									"," + moveIndex.getValue() + "). Invalid move. Try again");
 							return;
 						}
-						myView.getItems().clear();
-						myView.getItems().add("Player" + g1.getTurn() + " moved to " + moveIndex.getKey() +
-								", " + moveIndex.getValue() + ". Player" + g1.otherPlayer() + "'s turn");
+						whoseMove.getItems().clear();
+						whoseMove.getItems().add("Player" + g1.otherPlayer() + "'s turn");
+						moveLog.getItems().add("P" + g1.getTurn() + " to (" + moveIndex.getKey() +
+								"," + moveIndex.getValue() + ")");
 						if (g1.checkWin(moveIndex)) {
-							primaryStage.setScene(endScene(primaryStage, g1.getTurn()));
+							g1.disable();
+							primaryStage.setScene(endScene(primaryStage, g1.getTurn(), grid));
 						}
 					}
 				});
@@ -105,7 +140,7 @@ public class JavaFXTemplate extends Application {
 				g1.legalMoves.add(new Pair<>(5, j));
 			}
 		}
-		Scene scene = new Scene(new VBox(m1, myView, grid), 700,700);
+		Scene scene = new Scene(new VBox(m1, whoseMove, moveLog, grid), 700,700);
 		scene.getRoot().setStyle("-fx-font-family: 'Helvetica'");
 		return scene;
 	}
@@ -115,7 +150,7 @@ public class JavaFXTemplate extends Application {
 		return scene;
 	}
 	
-	public Scene endScene(Stage primaryStage, int turn) {
+	public Scene endScene(Stage primaryStage, int turn, GridPane grid) {
 		TextField t1 = new TextField();
 		Button b1 = new Button("new game");
 		Button b2 = new Button("quit");
@@ -128,9 +163,21 @@ public class JavaFXTemplate extends Application {
 		} else {
 			t1.setText("Player 2 Won");
 		}
-		Scene scene = new Scene(new VBox(b1, b2, t1), 700,700);
+		Scene scene = new Scene(new VBox(b1, b2, t1, grid), 700,700);
 		scene.getRoot().setStyle("-fx-font-family: 'Helvetica'");
 		return scene;
+	}
+	
+	
+	public void changeTheme(String theme) {
+		g1.changeTheme(theme);
+		if (theme == "Default") {
+			grid.setStyle("-fx-color: White");
+		} else if (theme == "Dark") {
+			grid.setStyle("-fx-color: Black");
+		} else {
+			
+		}
 	}
 	
 
