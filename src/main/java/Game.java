@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -11,7 +12,9 @@ public class Game {
 	HashSet<Pair<Integer, Integer>> p2Buttons;
 	HashSet<Pair<Integer, Integer>> pButtons;
 	Stack<Pair<Integer, Integer>> latestMoves;
+	HashMap<String, Pair<String, String>> colors;
 	int turn;
+	String theme;
 	
 	public Game() {
 		legalMoves = new HashSet<>();
@@ -19,6 +22,11 @@ public class Game {
 		p2Buttons = new HashSet<>();
 		pButtons = new HashSet<>();
 		latestMoves = new Stack<>();
+		colors = new HashMap<>();
+		colors.put("Default", new Pair<>("Red", "Yellow"));
+		colors.put("Dark", new Pair<>("White", "Gray"));
+		colors.put("Cool", new Pair<>("Blue", "Brown"));
+		theme = "Default";
 		turn = 1;
 	}
 	
@@ -41,14 +49,23 @@ public class Game {
 			return 1;
 		}
 	}
+	
+	public void disable() {
+		for (GameButton r []: gameBoard) {
+			for (GameButton c : r) {
+				c.setDisable(true);
+			}
+		}
+	}
+	
 	public boolean makeMove(Pair <Integer, Integer> moveIndex) {
 		if (checkLegalMove(moveIndex)) {
 			if (turn == 1) {
-				((GameButton)gameBoard[moveIndex.getKey()][moveIndex.getValue()]).setStyle("-fx-color: Red");
+				gameBoard[moveIndex.getKey()][moveIndex.getValue()].setStyle("-fx-color: " + colors.get(theme).getKey());
 			} else if (turn == 2) {
-				((GameButton)gameBoard[moveIndex.getKey()][moveIndex.getValue()]).setStyle("-fx-color: Green");
+				gameBoard[moveIndex.getKey()][moveIndex.getValue()].setStyle("-fx-color: " + colors.get(theme).getValue());
 			}
-			((GameButton)gameBoard[moveIndex.getKey()][moveIndex.getValue()]).setDisable(true);
+			gameBoard[moveIndex.getKey()][moveIndex.getValue()].setDisable(true);
 			legalMoves.remove(moveIndex);
 			if (moveIndex.getKey() > 0) {
 				legalMoves.add(new Pair<>(moveIndex.getKey() - 1, moveIndex.getValue()));
@@ -105,6 +122,17 @@ public class Game {
 		turnReset();
 		return lastMove;
 	}
+	
+	public void changeTheme(String theme) {
+		this.theme = theme;
+		for (Pair<Integer, Integer> button : p1Buttons) {
+			gameBoard[button.getKey()][button.getValue()].setStyle("-fx-color: " + colors.get(theme).getKey());
+		}
+		for (Pair<Integer, Integer> button : p2Buttons) {
+			gameBoard[button.getKey()][button.getValue()].setStyle("-fx-color: " + colors.get(theme).getValue());
+		}
+	}
+	
 	
 	private int checkDown(Pair<Integer, Integer> button) {
 		if (!pButtons.contains(button)) {
